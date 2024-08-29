@@ -1,1 +1,1 @@
-# ThreeJS advanced techniques - Physics
+# ThreeJS advanced techniques - Physics (Workshop)
