@@ -14,3 +14,8 @@ pnpm add cannon
 ```
 pnpm add -D @types/cannon
 ```
+
+<https://schteppe.github.io/cannon.js/>
+
+<https://schteppe.github.io/cannon.js/docs/classes/Vec3.html>
+

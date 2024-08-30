@@ -4,12 +4,8 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 import CANNON from "cannon";
 
-// in case of shadows, don't forget to activate shadowMap on renderer,
-// I think it will not work without it
-// you can also se shdow map type (picking shadow algorythm)
-
-// also, sphere will cast shadow, and floor will receive it (you also need to set this)
-// directional light needs to cast shadow also
+// we will create threejs world
+// and a physics world
 
 /**
  * @description Debug UI - lil-ui
@@ -20,10 +16,10 @@ const gui = new GUI({
   closeFolders: false,
 });
 
-gui.hide();
+// gui.hide();
 // gui parameters
 const parameters = {
-  materialColor: "#e481a4",
+  floorMaterialColor: "#89898b",
 };
 
 const sizes = {
@@ -45,6 +41,59 @@ if (canvas) {
 
   const sphereMatcap = textureLoader.load("/textures/matcaps/3.png");
 
+  // ------ PHYSICS --------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  /**
+   * Physics
+   */
+
+  const world = new CANNON.World();
+
+  world.gravity.set(0, -9.82, 0); // gravity is Vec3, not THREE.Vector3, it is CANNON.Vec3 instance (works almost the same)
+  //  and as you know 9.81 is gravity acceleration (9.81 m/s^2)
+  // we set acceleration on y axis (no need to explain this, it's clear as day)
+
+  // in threejs we create meshes, aand in cannon we create bodies
+  // https://schteppe.github.io/cannon.js/docs/classes/Body.html
+
+  // Sphere
+  const sphereShape = new CANNON.Sphere(0.5); // same radius as SphereGeometry
+  const sphereBody = new CANNON.Body({
+    mass: 1,
+    position: new CANNON.Vec3(0, 4, 0), // y is set to 4 because we want to release physical body from this position
+    shape: sphereShape,
+  });
+
+  world.addBody(sphereBody);
+
+  // floor is static, and without mass, since it symbolize the ground where objects are falling
+
+  const floorShape = new CANNON.Plane();
+  const floorBody = new CANNON.Body();
+  floorBody.mass = 0;
+  floorBody.addShape(floorShape);
+  world.addBody(floorBody);
+
+  // but since we need to rotate mesh plane in order it to be positioned
+  // horyzontaly we need this to do with body also
+  // but this is complicated
+  floorBody.quaternion.setFromAxisAngle(
+    new CANNON.Vec3(-1, 0, 0),
+    Math.PI * 0.5
+  ); // this will rotate the body by minus 90deg
+
+  //
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+
   // ------ LIGHTS ---------------------------------------------------
   // -----------------------------------------------------------------
   // -----------------------------------------------------------------
@@ -57,7 +106,7 @@ if (canvas) {
   scene.add(ambientLight);
 
   const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(2, 2, -1);
+  directionalLight.position.set(7, 9, -7);
   scene.add(directionalLight);
 
   // ---------------------------------------------------------------
@@ -65,14 +114,17 @@ if (canvas) {
   // ---------------------------------------------------------------
   // ---------------------------------------------------------------
 
+  const floorMaterial = new THREE.MeshStandardMaterial({
+    // color: "#777777",
+    color: parameters.floorMaterialColor,
+    metalness: 0.3,
+    roughness: 0.4,
+  });
+
   const floorMesh = new THREE.Mesh(
     new THREE.PlaneGeometry(60, 60),
     // works only with light
-    new THREE.MeshStandardMaterial({
-      color: "#777777",
-      metalness: 0.3,
-      roughness: 0.4,
-    })
+    floorMaterial
   );
 
   // rotate it by -90deg
@@ -114,12 +166,12 @@ if (canvas) {
   directionalLight.shadow.mapSize.height = 1024;
 
   directionalLight.shadow.camera.near = 1;
-  directionalLight.shadow.camera.far = 6;
+  directionalLight.shadow.camera.far = 24;
 
-  directionalLight.shadow.camera.top = 2;
-  directionalLight.shadow.camera.bottom = -2;
-  directionalLight.shadow.camera.right = 2;
-  directionalLight.shadow.camera.left = -2;
+  directionalLight.shadow.camera.top = 8;
+  directionalLight.shadow.camera.bottom = -8;
+  directionalLight.shadow.camera.right = 8;
+  directionalLight.shadow.camera.left = -8;
 
   directionalLight.shadow.radius = 10;
 
@@ -130,15 +182,15 @@ if (canvas) {
 
   //  GUI
 
-  gui.addColor(parameters, "materialColor").onChange(() => {
-    // material.color.set(parameters.materialColor);
+  gui.addColor(parameters, "floorMaterialColor").onChange(() => {
+    floorMaterial.color.set(parameters.floorMaterialColor);
     // particlesMaterial.color.set(parameters.materialColor);
   });
 
   /**
    * just to show that we can tweak normal html with lil gui
    */
-  const o = { showBorders: false };
+  /* const o = { showBorders: false };
   gui.add(o, "showBorders").onChange(() => {
     const els = document.querySelectorAll(".content div");
     if (o.showBorders === false) {
@@ -154,7 +206,7 @@ if (canvas) {
         });
       }
     }
-  });
+  }); */
 
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
@@ -174,9 +226,9 @@ if (canvas) {
     100
   );
 
-  camera.position.z = 6;
-  camera.position.x = 3;
-  camera.position.y = 3;
+  camera.position.z = 8;
+  camera.position.x = 4;
+  camera.position.y = 4;
 
   cameraGroup.add(camera);
   // scene.add(camera);
@@ -311,16 +363,43 @@ if (canvas) {
   const clock = new THREE.Clock();
 
   //
-  // let previousTime = 0;
+  let oldElapsedTime = 0;
 
   const tick = () => {
     //
-    // const elapsedTime = clock.getElapsedTime();
-    // const deltaTime = elapsedTime - previousTime;
+    const elapsedTime = clock.getElapsedTime();
+    const deltaTime = elapsedTime - oldElapsedTime;
     //
-    // previousTime = elapsedTime;
+    oldElapsedTime = elapsedTime;
+    //
 
-    // camera.position.y = (-scrollY / sizes.height) * objectDistance;
+    // to understand what are we doing
+    // read this:   https://gafferongames.com/post/fix_your_timestep/
+
+    // ------ UPDATE PHYSICS WORLD ------
+    // ---------------------------------------------------
+    // ---------------------------------------------------
+    // fixed time step for 60fps
+    world.step(1 / 60, deltaTime, 3); // max sub steps is 3 (read the article to understand this)
+
+    // console.log(sphereBody.position); CANNON.Vec3
+    // console.log(sphereBody.position.y); // you will see this value change (makes sense) (value will decrease)
+
+    // ---------------------------------------------------
+    // ----- UPDATE THREEJS WORLD, BY TAKING COORDINATES FROM PHYSICAL WORLD
+    // but instead of this
+    // sphereMesh.position.x = sphereBody.position.x;
+    // sphereMesh.position.y = sphereBody.position.y;
+    // sphereMesh.position.z = sphereBody.position.z;
+    // it's easier like this
+    // this will work despite we aare deling with THREE.Vector3 and CANNON.Vec3
+    sphereMesh.position.copy(sphereBody.position);
+
+    // same for floor even floor is static
+    floorMesh.position.copy(floorBody.position);
+
+    // for dumping to work
+    orbit_controls.update();
 
     renderer.render(scene, camera);
 
