@@ -1,13 +1,22 @@
 import * as THREE from "three";
-import gsap from "gsap";
+import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
+import gsap from "gsap";
+import CANNON from "cannon";
+
+// in case of shadows, don't forget to activate shadowMap on renderer,
+// I think it will not work without it
+// you can also se shdow map type (picking shadow algorythm)
+
+// also, sphere will cast shadow, and floor will receive it (you also need to set this)
+// directional light needs to cast shadow also
 
 /**
  * @description Debug UI - lil-ui
  */
 const gui = new GUI({
   width: 340,
-  title: "My Debugging",
+  title: "Tweak it",
   closeFolders: false,
 });
 
@@ -27,116 +36,94 @@ const sizes = {
 const canvas: HTMLCanvasElement | null = document.querySelector("canvas.webgl");
 
 if (canvas) {
-  // const objectDistance = 2;
-  const objectDistance = 4;
-
-  // -------------------------------------------------------
-
   const scene = new THREE.Scene();
 
   // TEXTURES
   const textureLoader = new THREE.TextureLoader();
-  const gradientTexture = textureLoader.load("/textures/gradients/3.jpg");
+  // const gradientTexture = textureLoader.load("/textures/gradients/3.jpg");
+  // gradientTexture.magFilter = THREE.NearestFilter;
 
-  gradientTexture.magFilter = THREE.NearestFilter;
+  const sphereMatcap = textureLoader.load("/textures/matcaps/3.png");
 
-  // ------  LIGHTS
-  // --------------------------------------------------------------------------------------
-  //---------------------------------------------------------------------------------------
+  // ------ LIGHTS ---------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
 
-  const directionalLight = new THREE.DirectionalLight("#ffffff", 1);
-  directionalLight.position.set(1, 1, 0);
+  /**
+   * Lights
+   */
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+  scene.add(ambientLight);
+
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  directionalLight.position.set(2, 2, -1);
   scene.add(directionalLight);
 
+  // ---------------------------------------------------------------
   // ------ MESHES ------
+  // ---------------------------------------------------------------
+  // ---------------------------------------------------------------
 
-  // -----------------------------------------------------------------------
-
-  const material = new THREE.MeshToonMaterial({
-    color: parameters.materialColor,
-    gradientMap: gradientTexture,
-  });
-
-  const mesh1 = new THREE.Mesh(
-    new THREE.TorusGeometry(1, 0.4, 16, 60),
-
-    material
-  );
-  const mesh2 = new THREE.Mesh(
-    new THREE.ConeGeometry(1, 2, 32),
-
-    material
-  );
-  const mesh3 = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(0.8, 0.35, 100, 16),
-
-    material
+  const floorMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(60, 60),
+    // works only with light
+    new THREE.MeshStandardMaterial({
+      color: "#777777",
+      metalness: 0.3,
+      roughness: 0.4,
+    })
   );
 
-  mesh1.position.y = -objectDistance * 0;
-  mesh2.position.y = -objectDistance * 1;
-  mesh3.position.y = -objectDistance * 2;
+  // rotate it by -90deg
+  floorMesh.rotation.x = -Math.PI * 0.5;
 
-  mesh1.position.x = 2;
-  mesh2.position.x = -2;
-  mesh3.position.x = 2;
+  scene.add(floorMesh);
 
-  //
+  const sphereMesh = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 32, 32),
+    new THREE.MeshMatcapMaterial({
+      matcap: sphereMatcap,
+    })
+  );
 
-  scene.add(mesh1, mesh2, mesh3);
+  sphereMesh.position.y = 0.5;
 
-  // to animate them easier
-  const sectionMeshes = [mesh1, mesh2, mesh3];
+  scene.add(sphereMesh);
 
   // -----------------------------------------------------------------------
-  // -----------------------------------------------------------------------
-  // -----------------------------------------------------------------------
-  // ---------- PARTICLES ----------
+  // ---------- PARTICLES --------------------------------------------------
   // -----------------------------------------------------------------------
   /**
    * Particles
    */
-  const particlesCount = 200;
-
-  const positions = new Float32Array(particlesCount * 3); // 3 values per particle x, y, z
-
-  for (let i = 0; i < particlesCount; i++) {
-    //
-    positions[i * 3 + 0] = (Math.random() - 0.5) * 10;
-    positions[i * 3 + 1] =
-      objectDistance * 0.5 -
-      Math.random() /* * 10 */ * objectDistance * sectionMeshes.length;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 10;
-  }
-
-  const particlesGeometry = new THREE.BufferGeometry();
-  particlesGeometry.setAttribute(
-    "position",
-    new THREE.BufferAttribute(positions, 3)
-  );
-
-  const particlesMaterial = new THREE.PointsMaterial({
-    color: parameters.materialColor,
-    sizeAttenuation: true,
-    size: 0.03,
-  });
-
-  const particles = new THREE.Points(particlesGeometry, particlesMaterial);
-
-  scene.add(particles);
 
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
-  // -----------------------------------------------------------------------
+
+  //  ---------------------- SHADOWS RELATED ----------------------
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  directionalLight.castShadow = true;
+  sphereMesh.castShadow = true;
+  floorMesh.receiveShadow = true;
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
+  // --------------------------------------------------------------
 
   //  GUI
 
   gui.addColor(parameters, "materialColor").onChange(() => {
-    material.color.set(parameters.materialColor);
-    particlesMaterial.color.set(parameters.materialColor);
+    // material.color.set(parameters.materialColor);
+    // particlesMaterial.color.set(parameters.materialColor);
   });
 
+  /**
+   * just to show that we can tweak normal html with lil gui
+   */
   const o = { showBorders: false };
   gui.add(o, "showBorders").onChange(() => {
     const els = document.querySelectorAll(".content div");
@@ -159,6 +146,9 @@ if (canvas) {
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
 
+  // we don't need this, it is from previous example to show how we can move group
+  // instead of camera
+  // we can keep this
   const cameraGroup = new THREE.Group();
   scene.add(cameraGroup);
 
@@ -170,25 +160,55 @@ if (canvas) {
     100
   );
 
-  camera.position.z = 4;
+  camera.position.z = 6;
+  camera.position.x = 3;
+  camera.position.y = 3;
 
   cameraGroup.add(camera);
   // scene.add(camera);
+
+  // ------ HELPERS ----------------------------------
+  // -------------------------------------------------
+  // -------------------------------------------------
+  // -------------------------------------------------
 
   const axHelp = new THREE.AxesHelper(4);
   axHelp.setColors("red", "green", "blue");
   scene.add(axHelp);
   axHelp.visible = false;
 
+  // -------------------------------------------------
+  // -------------------------------------------------
+  // -------------------------------------------------
+  // -------------------------------------------------
+
+  // orbit controls
+  const orbit_controls = new OrbitControls(camera, canvas);
+  // orbit_controls.enabled = false
+  orbit_controls.enableDamping = true;
+  // -------------------------------------------------
+  // -------------------------------------------------
+  // -------------------------------------------------
+  // -------------------------------------------------
+
   const renderer = new THREE.WebGLRenderer({
     canvas,
     alpha: true,
   });
+
+  // for shadows to work
+  // ------ ACTIVATE SHADOW MAP ------
+  //--------------------------------------------------
+  renderer.shadowMap.enabled = true;
+  // shadow algos
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+  //--------------------------------------------------
+  //--------------------------------------------------
+
   // handle pixel ratio
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
   renderer.setSize(sizes.width, sizes.height);
-
   renderer.render(scene, camera);
 
   // -------------------------------------------------
@@ -205,6 +225,7 @@ if (canvas) {
   });
 
   // ------ ANIMATING ON SCROLL ------
+  // we don't need this
   // ---------------------------------
   // ---------------------------------
   // ---------------------------------
@@ -216,13 +237,13 @@ if (canvas) {
   /**
    * Scroll
    */
-  let scrollY = window.screenY;
+  // let scrollY = window.screenY;
 
-  let currentSection = 0; //
+  // let currentSection = 0; //
 
   // console.log({ scrollY });
 
-  window.addEventListener("scroll", () => {
+  /*  window.addEventListener("scroll", () => {
     scrollY = window.scrollY;
 
     // console.log({ scrollY });
@@ -245,21 +266,21 @@ if (canvas) {
     }
 
     // console.log(newSection);
-  });
+  }); */
 
   // --------------------------------------------------
   // ---------- FOR PARALLAX --------------------------
   /**
    * Cursor
    */
-  const cursor = { x: 0, y: 0 };
+  /* const cursor = { x: 0, y: 0 };
   cursor.x = 0;
   cursor.y = 0;
 
   window.addEventListener("mousemove", (e) => {
     cursor.x = e.clientX / sizes.width - 0.5;
     cursor.y = e.clientY / sizes.height - 0.5;
-  });
+  }); */
 
   // --------------------------------------------------
   // --------------------------------------------------
@@ -269,30 +290,16 @@ if (canvas) {
   const clock = new THREE.Clock();
 
   //
-  let previousTime = 0;
+  // let previousTime = 0;
 
   const tick = () => {
-    const elapsedTime = clock.getElapsedTime();
-
-    const deltaTime = elapsedTime - previousTime;
-    previousTime = elapsedTime;
-
-    camera.position.y = (-scrollY / sizes.height) * objectDistance;
-
-    // -------------------------------------------------
-    const parallaxX = cursor.x * 0.5;
-    const parallaxY = -cursor.y * 0.5;
-
-    cameraGroup.position.x +=
-      (parallaxX - cameraGroup.position.x) * 5 * deltaTime;
-    cameraGroup.position.y +=
-      (parallaxY - cameraGroup.position.y) * 5 * deltaTime;
-
-    for (const mesh of sectionMeshes) {
-      mesh.rotation.x += deltaTime * 0.1;
-      mesh.rotation.y += deltaTime * 0.12;
-    }
     //
+    // const elapsedTime = clock.getElapsedTime();
+    // const deltaTime = elapsedTime - previousTime;
+    //
+    // previousTime = elapsedTime;
+
+    // camera.position.y = (-scrollY / sizes.height) * objectDistance;
 
     renderer.render(scene, camera);
 
