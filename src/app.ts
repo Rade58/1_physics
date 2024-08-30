@@ -109,6 +109,20 @@ if (canvas) {
   directionalLight.castShadow = true;
   sphereMesh.castShadow = true;
   floorMesh.receiveShadow = true;
+
+  directionalLight.shadow.mapSize.width = 1024;
+  directionalLight.shadow.mapSize.height = 1024;
+
+  directionalLight.shadow.camera.near = 1;
+  directionalLight.shadow.camera.far = 6;
+
+  directionalLight.shadow.camera.top = 2;
+  directionalLight.shadow.camera.bottom = -2;
+  directionalLight.shadow.camera.right = 2;
+  directionalLight.shadow.camera.left = -2;
+
+  directionalLight.shadow.radius = 10;
+
   // --------------------------------------------------------------
   // --------------------------------------------------------------
   // --------------------------------------------------------------
@@ -175,7 +189,14 @@ if (canvas) {
   const axHelp = new THREE.AxesHelper(4);
   axHelp.setColors("red", "green", "blue");
   scene.add(axHelp);
+
+  const directionalLightCameraHelper = new THREE.CameraHelper(
+    directionalLight.shadow.camera
+  );
+  scene.add(directionalLightCameraHelper);
+
   axHelp.visible = false;
+  directionalLightCameraHelper.visible = false;
 
   // -------------------------------------------------
   // -------------------------------------------------
