@@ -4,13 +4,9 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 import CANNON from "cannon";
 
-// we will define CANNON.Material and CANNON.ContactMaterial instances to change friction and bouncing behaviour
-// we will define these instances just after line where we have set gravity in previous lesson
-//
-// we wil set properties like friction (how much does it rub) or restitution (how much does it bounce)
-// default values for both are 0.3 (values above 1.0 are allowed)
-
-// we will set mentioned CANNON.Material instances for appropriate CANNON.Body instances we defined earlier
+// instead of defining two CANNON.Material instances, you can use just one
+// since these name you gave them mean nothing
+// I assume this is only done in scenes where you would only have one grounf and one type of material that moves
 
 /**
  * @description Debug UI - lil-ui
@@ -63,12 +59,17 @@ if (canvas) {
   // CANNON.Material and CANNON.ContactMaterial instancs ---------------
   // ---------------------------------------------------------
   // name is not important but it provids description, and easier to reference
-  const concreteMaterial = new CANNON.Material("concrete"); // don't forget tp set these on bodies
-  const plasticMaterial = new CANNON.Material("plastic");
+  // but we don't need two, we can use just one instance
+  // const concreteMaterial = new CANNON.Material("concrete");
+  // const plasticMaterial = new CANNON.Material("plastic");
+
+  const defaultMaterial = new CANNON.Material("concrete_and_plastic");
 
   const concreteToPlasticContactMaterial = new CANNON.ContactMaterial(
-    concreteMaterial,
-    plasticMaterial,
+    // concreteMaterial,
+    // plasticMaterial,
+    defaultMaterial,
+    defaultMaterial,
     {
       // values above 1.0 are allowed
       friction: 0.1, // higher the number it is smoother slide like oil
@@ -87,7 +88,8 @@ if (canvas) {
     position: new CANNON.Vec3(0, 4, 0), // y is set to 4 because we want to release physical body from this position
     shape: sphereShape,
     // we set THREE.Material instance
-    material: plasticMaterial,
+    // material: plasticMaterial,
+    material: defaultMaterial,
   });
 
   world.addBody(sphereBody);
@@ -101,7 +103,8 @@ if (canvas) {
   world.addBody(floorBody);
 
   // we set THREE.Material instance
-  floorBody.material = concreteMaterial;
+  // floorBody.material = concreteMaterial;
+  floorBody.material = defaultMaterial;
 
   // but since we need to rotate mesh plane in order it to be positioned
   // horyzontaly we need this to do with body also
