@@ -65,7 +65,7 @@ if (canvas) {
 
   const defaultMaterial = new CANNON.Material("concrete_and_plastic");
 
-  const concreteToPlasticContactMaterial = new CANNON.ContactMaterial(
+  const defaultContactMaterial = new CANNON.ContactMaterial(
     // concreteMaterial,
     // plasticMaterial,
     defaultMaterial,
@@ -77,7 +77,13 @@ if (canvas) {
     }
   );
 
-  world.addContactMaterial(concreteToPlasticContactMaterial);
+  // we can also, instead of this (or you can keep this)
+  world.addContactMaterial(defaultContactMaterial);
+  // set defaultContactMaterial instead
+  world.defaultContactMaterial = defaultContactMaterial;
+
+  // again saying, if your world isn't realistic, which most of the time isn't
+  // you can use default material instead of multipl
 
   // ------------------------------------------
 
