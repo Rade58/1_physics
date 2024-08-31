@@ -237,9 +237,9 @@ if (canvas) {
   // -----------------------------------------------------------------------
   // -----------------------------------------------------------------------
 
-  // we don't need this, it is from previous example to show how we can move group
+  // we don't need this, it is from previous group of lessons to show how we can move group
   // instead of camera
-  // we can keep this
+  // so I kept this
   const cameraGroup = new THREE.Group();
   scene.add(cameraGroup);
 

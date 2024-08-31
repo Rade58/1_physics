@@ -4,9 +4,21 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 import CANNON from "cannon";
 
-// instead of defining two CANNON.Material instances, you can use just one
-// since these name you gave them mean nothing
-// I assume this is only done in scenes where you would only have one grounf and one type of material that moves
+// there are many ways to apply forces
+
+// we will use this one
+// - applyForce   (apply force from a specific point in space), not neccessary on the body surface
+// (like the wind force, small push   or   domino like strong push so body can fold )
+
+// - applyImpulse     adding it to velocity instead of adding it to the force like with applyForce case
+
+//and we will use this one
+// - applyLocalForce    apply force on local coordinates of the body, where  0,0,0 would be center of the body
+
+// - applyLocalImpulse   same as applyImpulse but coordinates are local to the body
+
+// --------------------------------------------------------------------------------------------------
+// in order our body to stop eventually after force application, we need to define linerDumping and angularDumping on the body
 
 /**
  * @description Debug UI - lil-ui
@@ -58,8 +70,6 @@ if (canvas) {
 
   // CANNON.Material and CANNON.ContactMaterial instancs ---------------
   // ---------------------------------------------------------
-  // name is not important but it provids description, and easier to reference
-  // but we don't need two, we can use just one instance
   // const concreteMaterial = new CANNON.Material("concrete");
   // const plasticMaterial = new CANNON.Material("plastic");
 
@@ -77,30 +87,49 @@ if (canvas) {
     }
   );
 
-  // we can also, instead of this (or you can keep this)
+  // instead of this (or you can keep this)
   world.addContactMaterial(defaultContactMaterial);
   // set defaultContactMaterial instead
   world.defaultContactMaterial = defaultContactMaterial;
 
-  // again saying, if your world isn't realistic, which most of the time isn't
-  // you can use default material instead of multipl
-
   // ------------------------------------------
 
   // Sphere
-  const sphereShape = new CANNON.Sphere(0.5); // same radius as SphereGeometry
+  const sphereShape = new CANNON.Sphere(0.5);
   const sphereBody = new CANNON.Body({
     mass: 1,
-    position: new CANNON.Vec3(0, 4, 0), // y is set to 4 because we want to release physical body from this position
+    position: new CANNON.Vec3(0, 4, 0),
     shape: sphereShape,
     // we set THREE.Material instance
     // material: plasticMaterial,
     material: defaultMaterial,
   });
 
-  world.addBody(sphereBody);
+  // I applied it in order to body stop moving eventually, after we apply the force
+  sphereBody.linearDamping = 0.1;
+  sphereBody.angularDamping = 0.1;
 
-  // floor is static, and without mass, since it symbolize the ground where objects are falling
+  // APPLYING LOCAL FORCE ON THE sphereBody
+  // FORCE WILL HAVE 150N on thee x axis, and it will be applied in the center of the body
+  // we can use negative values to change direction of the force
+  //
+  sphereBody.applyLocalForce(
+    new CANNON.Vec3(-150, 0, 0),
+    new CANNON.Vec3(0, 0, 0) // in center
+  );
+  // next in tick function I defined a force to mimic the wind (but I'll comment it out when I see the effect of it, since I don't need the wind)
+  // and it iwill be force in different direction that this one above
+  // we will use applyForce method in this case
+  // we are using other method for no particular reason, just so we can
+
+  //I think it is clear to you that since we will apply force in tick function
+  // a function will be applied on every frame, unlike above where we use function only one
+
+  // keep in mind that we need to apply force before we update phisical world in tick function
+
+  // ---------------------------------------
+
+  world.addBody(sphereBody);
 
   const floorShape = new CANNON.Plane();
   const floorBody = new CANNON.Body();
@@ -108,17 +137,14 @@ if (canvas) {
   floorBody.addShape(floorShape);
   world.addBody(floorBody);
 
-  // we set THREE.Material instance
   // floorBody.material = concreteMaterial;
   floorBody.material = defaultMaterial;
 
-  // but since we need to rotate mesh plane in order it to be positioned
-  // horyzontaly we need this to do with body also
-  // but this is complicated
+  //
   floorBody.quaternion.setFromAxisAngle(
     new CANNON.Vec3(-1, 0, 0),
     Math.PI * 0.5
-  ); // this will rotate the body by minus 90deg
+  );
 
   //
   // -----------------------------------------------------------------
@@ -407,13 +433,19 @@ if (canvas) {
     oldElapsedTime = elapsedTime;
     //
 
-    // to understand what are we doing
-    // read this:   https://gafferongames.com/post/fix_your_timestep/
+    // MIMICKING THE WIND FORCE
+    // since we are doing this on every frame this will be consistent force
+    // always applied to the body
+
+    // sphereBody.applyForce(new CANNON.Vec3(0.5, 0, 0), sphereBody.position);
+    // I comment it out since I don't need wind, I want to see some other effects
 
     // ------ UPDATE PHYSICS WORLD ------
     // ---------------------------------------------------
     // ---------------------------------------------------
     // fixed time step for 60fps
+    // to understand what are we doing
+    // read this:   https://gafferongames.com/post/fix_your_timestep/
     world.step(1 / 60, deltaTime, 3); // max sub steps is 3 (read the article to understand this)
 
     // console.log(sphereBody.position); CANNON.Vec3
@@ -421,15 +453,13 @@ if (canvas) {
 
     // ---------------------------------------------------
     // ----- UPDATE THREEJS WORLD, BY TAKING COORDINATES FROM PHYSICAL WORLD
-    // but instead of this
     // sphereMesh.position.x = sphereBody.position.x;
     // sphereMesh.position.y = sphereBody.position.y;
     // sphereMesh.position.z = sphereBody.position.z;
-    // it's easier like this
     // this will work despite we aare deling with THREE.Vector3 and CANNON.Vec3
     sphereMesh.position.copy(sphereBody.position);
 
-    // same for floor even floor is static
+    // same for floor, even floor is static
     floorMesh.position.copy(floorBody.position);
 
     // for dumping to work
