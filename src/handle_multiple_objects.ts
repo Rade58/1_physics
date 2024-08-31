@@ -13,11 +13,14 @@ import CANNON from "cannon";
 
 // we will first remove sphere mesh, related body, shape (we used sphere in previous example)
 
-// and we will create function to automate creation of the sphere, and we can use this function
+// and we will create function (createObject) to automate creation of the sphere, and we can use this function
 // multiple times
 // we will define it (right before animate part (before tick function definition and related things))
 
-// we will group related meshes and bodies into objects, so we can update them in tick function
+// we will group related meshes and bodies into objects, so we can update them in tick function, by calling createObject
+
+// ----
+// we will also use lil-gui to allow creation of objects by clicking on a button
 
 /**
  * @description Debug UI - lil-ui
@@ -462,7 +465,11 @@ if (canvas) {
   }
 
   createSphere(0.5, { x: 0, y: 4, z: 0 });
-
+  /* createSphere(0.5, { x: 1, y: 4, z: 1 });
+  createSphere(0.5, { x: 2, y: 4, z: 2 });
+  createSphere(0.5, { x: 3, y: 4, z: 3 });
+  createSphere(0.5, { x: 4, y: 4, z: 4 });
+  */
   console.log(objectsToUpdate);
 
   // --------------------------------------------------
