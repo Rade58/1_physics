@@ -1,18 +1,51 @@
+// -----------------------------------------------------------------------
+// - CONSTRAINTS
+
+// YOU CAN ENABLE CONSTRAINTS BETWEEN TWO BODIES
+
+// HighConstraint - acts like a door hinge
+// DistanceConstraint - forces the bodies to keep a distance between ech other
+// LockConstraint - merges the bodies like if they were one piece
+// PointToPointConstraint - glues the bodies to a specific point
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// - CLASSES, METHODS, PROPERTIES, AND EVENTS
+// we covered a lot but thee is more
+// check docs https://schteppe.github.io/cannon.js/docs/
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// - EXAMPLES
+// https://schteppe.github.io/cannon.js/      it has car example too
+// In chromee to see source code you can press Ctrl + U
+// nd you will see all the code
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// - WORKERS
+// you can run your code in workers to run cannon in gpu instead of cpu
+// example with workers: https://schteppe.github.io/cannon.js/examples/worker.html
+//
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// - CANNON-ES
+// https://github.com/pmndrs/cannon-es
+// https://www.npmjs.com/package/cannon-es
+// This is a maintained fork of cannon.js,
+// so cannon is not well metained, that's why peope made this fork
+// we can try using it
+// ---------------------------------------------------------------------------
+
+// We will now try using cannon-es, instad of cannon
+// `pnpm add cannon-es@0.20.0`
+
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 import GUI from "lil-gui";
 import gsap from "gsap";
-import CANNON from "cannon";
-
-// REMOVE THINGS
-
-// maybe sometimes body rolled to some distance where it got out of bounds and you want to remove it
-// in our case we will define that all bodies are remove by clicking on some lil-gui button
-// we will define function that we will name as "reset"
-
-// this should be last lesson
-
-// To see what you can doo more with cannon, check comments in        src/go_further_with_cannon.ts
+// import CANNON from "cannon";
+import * as CANNON from "cannon-es";
 
 /**
  * @description Debug UI - lil-ui
@@ -55,6 +88,7 @@ if (canvas) {
 
   const hitSound = new Audio("/sounds/hit.mp3");
 
+  // types are problem in cannon-es, different than in cannon
   const playHitSound = (collision: CANNON.ICollisionEvent) => {
     // without this you would have very strange playing of a sound
     // every new collide wouldn't play sound because sound is already playing,
@@ -357,6 +391,8 @@ if (canvas) {
   gui.add(parameters, "reset").onChange(() => {
     for (const element of objectsToUpdate) {
       element.body.removeEventListener("collide", playHitSound);
+
+      // this is not available in cannon-es
       world.remove(element.body);
 
       scene.remove(element.mesh);

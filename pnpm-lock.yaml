@@ -11,6 +11,9 @@ importers:
       cannon:
         specifier: ^0.6.2
         version: 0.6.2
+      cannon-es:
+        specifier: ^0.20.0
+        version: 0.20.0
       gsap:
         specifier: 3.5.1
         version: 3.5.1
@@ -269,6 +272,9 @@ packages:
   '@types/webxr@0.5.20':
     resolution: {integrity: sha512-JGpU6qiIJQKUuVSKx1GtQnHJGxRjtfGIhzO2ilq43VZZS//f1h1Sgexbdk+Lq+7569a6EYhOWrUpIruR/1Enmg==}
 
+  cannon-es@0.20.0:
+    resolution: {integrity: sha512-eZhWTZIkFOnMAJOgfXJa9+b3kVlvG+FX4mdkpePev/w/rP5V8NRquGyEozcjPfEoXUlb+p7d9SUcmDSn14prOA==}
+
   cannon@0.6.2:
     resolution: {integrity: sha512-n/7wWSXr8KOSvjad2x0fJHgpMepKjOKi+NdSnjfYyijoDBZnp4JQKgPcpv28jlXoWM+N9zVYU09J0A6Qxx+Y7w==}
 
@@ -485,6 +491,8 @@ snapshots:
       meshoptimizer: 0.18.1
 
   '@types/webxr@0.5.20': {}
+
+  cannon-es@0.20.0: {}
 
   cannon@0.6.2: {}
 
