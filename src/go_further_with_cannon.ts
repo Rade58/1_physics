@@ -30,11 +30,21 @@
 
 // ---------------------------------------------------------------------------
 // AMMO.JS
+// https://github.com/kripken/ammo.js
 //- HARDER TO USE THAN CANNON BUT IT HAS MORE FEATURES
 //- PORTAGE OF BULLET (WELL OILED PHYSICS ENGINE) WRITTEN IN C++
 //- IT HAS WEB ASSEMBLY SUPPORT
 //- MORE POPULAR, AND HAS MORE EXAMPLES OF THREE.JS
 //- MORE FEATURES
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
+// AMMO.JS
+// PHYSIJS
+// https://github.com/chandlerprall/Physijs
+// uses ammojs under the hood
+// it simplifies physics implementation
+// eliminates usage of both three and physics lib, you write just Physis.BoxMesh if you want mesh and body instance packed together
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
