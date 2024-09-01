@@ -29,6 +29,15 @@
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------
+// AMMO.JS
+//- HARDER TO USE THAN CANNON BUT IT HAS MORE FEATURES
+//- PORTAGE OF BULLET (WELL OILED PHYSICS ENGINE) WRITTEN IN C++
+//- IT HAS WEB ASSEMBLY SUPPORT
+//- MORE POPULAR, AND HAS MORE EXAMPLES OF THREE.JS
+//- MORE FEATURES
+// ---------------------------------------------------------------------------
+
+// ---------------------------------------------------------------------------
 // - CANNON-ES
 // https://github.com/pmndrs/cannon-es
 // https://www.npmjs.com/package/cannon-es
