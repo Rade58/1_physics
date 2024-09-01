@@ -85,6 +85,8 @@ if (canvas) {
       // - add very short delay where the sound cannot play again after being played once
       // -in addition to random volume, scale it accordinly to the impact strength
     }
+
+    // next we can define event listener for the sphere bodies
   };
 
   // we will use function above as a listener (on collide for the box body)
@@ -545,6 +547,8 @@ if (canvas) {
       shape,
       material: defaultMaterial,
     });
+
+    body.addEventListener("collide", playHitSound);
 
     // @ts-expect-error Vec3  Vector3 , or object with x y z
     body.position.copy(position);
