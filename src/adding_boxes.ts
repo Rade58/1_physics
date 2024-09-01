@@ -4,23 +4,8 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 import CANNON from "cannon";
 
-// manging few objects is easy, but manging multiple objects (I gues multiple bodies, cannon materials can be messy)
-
-// (in this case we are considering as "objects", or calling them "objects": a body and mesh that are related oto eachother)
-
-// --------------------------------------------------------------------------------------------------
-// in order our body to stop eventually after force application, we need to define linerDumping and angularDumping on the body
-
-// we will first remove sphere mesh, related body, shape (we used sphere in previous example)
-
-// and we will create function (createObject) to automate creation of the sphere, and we can use this function
-// multiple times
-// we will define it (right before animate part (before tick function definition and related things))
-
-// we will group related meshes and bodies into objects, so we can update them in tick function, by calling createObject
-
-// ----
-// we will also use lil-gui to allow creation of objects by clicking on a button
+// in this example we will add boxes
+// we will define createBox function
 
 /**
  * @description Debug UI - lil-ui
@@ -38,6 +23,7 @@ const parameters = {
   createSphere: () => {
     //
   },
+  createBox: () => {},
 };
 
 const sizes = {
@@ -171,9 +157,30 @@ if (canvas) {
 
   // ---------------------------------------------------------------
   // ---------------------------------------------------------------
-  //  GEOMETRIES AND MATERIALS
+  // -------- GEOMETRIES AND MATERIALS
   // ---------------------------------------------------------------
   // ---------------------------------------------------------------
+
+  // FOR SPHERES
+  const sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
+  const sphereMaterial = new THREE.MeshMatcapMaterial({
+    // metalness: 0.3,
+    // roughness: 0.4,
+    // envMap: sphereMatcap,
+    matcap: sphereMatcap,
+    color: "#3bb09c",
+  });
+  // FOR BOXES
+  const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
+  const boxMaterial = new THREE.MeshMatcapMaterial({
+    // metalness: 0.3,
+    // roughness: 0.4,
+    // envMap: sphereMatcap,
+    matcap: sphereMatcap,
+    color: "#dfb3c5",
+  });
+
+  // ----------------
 
   const floorMaterial = new THREE.MeshStandardMaterial({
     // color: "#777777",
@@ -258,6 +265,21 @@ if (canvas) {
       y: 3,
       z: (Math.random() - 0.5) * 3,
     });
+  });
+
+  gui.add(parameters, "createBox").onChange(() => {
+    createBox(
+      {
+        width: Math.random(),
+        height: Math.random(),
+        dept: Math.random(),
+      },
+      {
+        x: (Math.random() - 0.5) * 3,
+        y: 3,
+        z: (Math.random() - 0.5) * 3,
+      }
+    );
   });
 
   /**
@@ -442,16 +464,12 @@ if (canvas) {
     position: { x: number; y: number; z: number }
   ) {
     // mesh ------------------------------------------------
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 20, 20),
-      new THREE.MeshMatcapMaterial({
-        // metalness: 0.3,
-        // roughness: 0.4,
-        // envMap: sphereMatcap,
-        matcap: sphereMatcap,
-        color: "#3bb09c",
-      })
-    );
+    // we are now using ame geometry and material for every instance that would
+    // create this function createSphere
+    const mesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+    // but we will scale mesh to use radius parameter from this function
+    mesh.scale.set(radius, radius, radius);
 
     mesh.castShadow = true;
     mesh.position.copy(position);
@@ -485,7 +503,55 @@ if (canvas) {
     });
   }
 
-  createSphere(0.5, { x: 0, y: 4, z: 0 });
+  //
+
+  function createBox(
+    size: { width: number; height: number; dept: number },
+
+    position: { x: number; y: number; z: number }
+  ) {
+    const mesh = new THREE.Mesh(boxGeometry, boxMaterial);
+    mesh.scale.set(size.width, size.height, size.dept);
+
+    mesh.castShadow = true;
+
+    mesh.position.copy(position);
+
+    scene.add(mesh);
+
+    // when defining cube shape in cannon, dimesions are different
+    const shape = new CANNON.Box(
+      // dimesions used are halfExtent (so you need to devide by two)
+      new CANNON.Vec3(size.width / 2, size.height / 2, size.dept / 2)
+    );
+
+    const body = new CANNON.Body({
+      mass: 1,
+      position: new CANNON.Vec3(0, 3, 0),
+      shape,
+      material: defaultMaterial,
+    });
+
+    // body.position.x = position.x;
+    // body.position.y = position.y;
+    // body.position.x = position.z;
+
+    // @ts-expect-error vectors
+    body.position.copy(position);
+
+    // body.linearDamping = 0.1;
+    // body.angularDamping = 0.1;
+
+    world.addBody(body);
+
+    objectsToUpdate.push({
+      mesh,
+      body,
+    });
+  }
+
+  // createSphere(0.5, { x: 0, y: 4, z: 0 });
+
   /* createSphere(0.5, { x: 1, y: 4, z: 1 });
   createSphere(0.5, { x: 2, y: 4, z: 2 });
   createSphere(0.5, { x: 3, y: 4, z: 3 });

@@ -4,23 +4,13 @@ import GUI from "lil-gui";
 import gsap from "gsap";
 import CANNON from "cannon";
 
-// manging few objects is easy, but manging multiple objects (I gues multiple bodies, cannon materials can be messy)
+// we want to optimize previous example
 
-// (in this case we are considering as "objects", or calling them "objects": a body and mesh that are related oto eachother)
+// for example, we will use just one instance for geometry and material, when calling createSphere function
+// if we want different sizes for sphere mesh, we can use scale (just see what we did)
 
-// --------------------------------------------------------------------------------------------------
-// in order our body to stop eventually after force application, we need to define linerDumping and angularDumping on the body
-
-// we will first remove sphere mesh, related body, shape (we used sphere in previous example)
-
-// and we will create function (createObject) to automate creation of the sphere, and we can use this function
-// multiple times
-// we will define it (right before animate part (before tick function definition and related things))
-
-// we will group related meshes and bodies into objects, so we can update them in tick function, by calling createObject
-
-// ----
-// we will also use lil-gui to allow creation of objects by clicking on a button
+// when spawning new objects wit lil gui, just keep in mind that physics on cpu and render ins on gpu
+// which can impact performace
 
 /**
  * @description Debug UI - lil-ui
@@ -170,10 +160,19 @@ if (canvas) {
   scene.add(directionalLight);
 
   // ---------------------------------------------------------------
+  // ------ MESHES ------
   // ---------------------------------------------------------------
-  //  GEOMETRIES AND MATERIALS
   // ---------------------------------------------------------------
-  // ---------------------------------------------------------------
+
+  const sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
+  const sphereMaterial = new THREE.MeshMatcapMaterial({
+    // metalness: 0.3,
+    // roughness: 0.4,
+    // envMap: sphereMatcap,
+    matcap: sphereMatcap,
+    color: "#3bb09c",
+  });
+  //
 
   const floorMaterial = new THREE.MeshStandardMaterial({
     // color: "#777777",
@@ -442,16 +441,12 @@ if (canvas) {
     position: { x: number; y: number; z: number }
   ) {
     // mesh ------------------------------------------------
-    const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(radius, 20, 20),
-      new THREE.MeshMatcapMaterial({
-        // metalness: 0.3,
-        // roughness: 0.4,
-        // envMap: sphereMatcap,
-        matcap: sphereMatcap,
-        color: "#3bb09c",
-      })
-    );
+    // we are now using ame geometry and material for every instance that would
+    // create this function createSphere
+    const mesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+    // but we will scale mesh to use radius parameter from this function
+    mesh.scale.set(radius, radius, radius);
 
     mesh.castShadow = true;
     mesh.position.copy(position);
